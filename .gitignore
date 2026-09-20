@@ -10,6 +10,10 @@ Desktop.ini
 # Visual Studio Code
 .vscode/
 
+# Visual Studio / SQL Server Management Studio
+.vs/
+**/.vs/
+
 # SQL Server / ficheiros temporários
 *.bak
 *.tmp
@@ -17,4 +21,4 @@ Desktop.ini
 
 # Outros
 *.cache
-chore: adicionar ficheiro .gitignore
+
