@@ -1,0 +1,96 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+class Utilizador {
+  +id_utilizador : int
+  +nome : String
+  +apelido : String
+  +sexo : char
+  +data_nascimento : Date
+  +telefone : String
+  +email : String
+  +palavra_passe : String
+  +endereco : String
+  +tipo_utilizador : String
+}
+
+class TipoSanguineo {
+  +id_tipo_sanguineo : int
+  +grupo_sanguineo : String
+  +fator_rh : String
+}
+
+class Hospital {
+  +id_hospital : int
+  +nome_hospital : String
+  +provincia : String
+  +distrito : String
+  +endereco : String
+  +telefone : String
+  +email : String
+}
+
+class Dador {
+  +id_dador : int
+  +id_utilizador : int
+  +id_tipo_sanguineo : int
+  +peso : decimal
+  +cidade : String
+  +bairro : String
+  +ultima_doacao : Date
+  +disponibilidade : boolean
+}
+
+class Campanha {
+  +id_campanha : int
+  +id_hospital : int
+  +titulo : String
+  +descricao : String
+  +local : String
+  +data : Date
+  +hora : Time
+}
+
+class PedidoDeSangue {
+  +id_pedido : int
+  +id_hospital : int
+  +id_tipo_sanguineo : int
+  +quantidade_bolsas : int
+  +urgencia : String
+  +data_pedido : Date
+  +estado : String
+}
+
+class Doacao {
+  +id_doacao : int
+  +id_dador : int
+  +id_hospital : int
+  +data_doacao : Date
+  +quantidade : decimal
+}
+
+class Notificacao {
+  +id_notificacao : int
+  +id_utilizador : int
+  +mensagem : String
+  +data_envio : DateTime
+  +lida : boolean
+}
+
+'================ RELACIONAMENTOS ================
+
+Utilizador "1" -- "1" Dador : possui
+Utilizador "1" -- "0..*" Notificacao : recebe
+
+TipoSanguineo "1" -- "0..*" Dador : possui
+TipoSanguineo "1" -- "0..*" PedidoDeSangue : solicitado em
+
+Hospital "1" -- "0..*" Campanha : organiza
+Hospital "1" -- "0..*" PedidoDeSangue : cria
+Hospital "1" -- "0..*" Doacao : recebe
+
+Dador "1" -- "0..*" Doacao : realiza
+
+@enduml

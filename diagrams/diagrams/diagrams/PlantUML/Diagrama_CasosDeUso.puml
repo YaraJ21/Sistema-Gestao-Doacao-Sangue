@@ -1,0 +1,67 @@
+@startuml
+left to right direction
+skinparam shadowing false
+
+actor Dador
+actor Hospital
+actor Administrador
+
+rectangle "Sistema de Gestão de Doação de Sangue" {
+
+  usecase "Autenticar-se" as UC1
+  usecase "Registar Utilizador" as UC2
+  usecase "Atualizar Perfil" as UC3
+
+  usecase "Registar Dador" as UC4
+  usecase "Consultar Campanhas" as UC5
+  usecase "Consultar Pedidos de Sangue" as UC6
+  usecase "Confirmar Disponibilidade" as UC7
+  usecase "Realizar Doação" as UC8
+  usecase "Receber Notificações" as UC9
+
+  usecase "Registar Hospital" as UC10
+  usecase "Criar Campanha de Doação" as UC11
+  usecase "Criar Pedido de Sangue" as UC12
+  usecase "Consultar Dadores Disponíveis" as UC13
+  usecase "Registar Receção de Doação" as UC14
+
+  usecase "Gerir Utilizadores" as UC15
+  usecase "Gerir Hospitais" as UC16
+  usecase "Gerir Tipos Sanguíneos" as UC17
+  usecase "Gerar Relatórios" as UC18
+}
+
+'================ DADOR ================
+
+Dador --> UC1
+Dador --> UC3
+Dador --> UC5
+Dador --> UC6
+Dador --> UC7
+Dador --> UC8
+Dador --> UC9
+
+'================ HOSPITAL ================
+
+Hospital --> UC1
+Hospital --> UC10
+Hospital --> UC11
+Hospital --> UC12
+Hospital --> UC13
+Hospital --> UC14
+
+'================ ADMINISTRADOR ================
+
+Administrador --> UC1
+Administrador --> UC2
+Administrador --> UC15
+Administrador --> UC16
+Administrador --> UC17
+Administrador --> UC18
+
+'================ INCLUDE ================
+
+UC8 ..> UC7 : <<include>>
+UC14 ..> UC13 : <<include>>
+
+@enduml
