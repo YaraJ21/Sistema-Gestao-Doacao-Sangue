@@ -1,17 +1,14 @@
 /*
-=========================================================
  Sistema de Gestão de Doação de Sangue
  Script: 01_Tabelas.sql
  Tecnologia: Microsoft SQL Server
  Autor: Leonilde José Mugabe
-=========================================================
 */
 
 USE BD_DoacaoSangue;
 GO
--- =====================================================
+
 -- TABELA: Utilizador
--- =====================================================
 
 CREATE TABLE Utilizador (
     id_utilizador INT IDENTITY(1,1) PRIMARY KEY,
@@ -27,9 +24,7 @@ CREATE TABLE Utilizador (
 );
 GO
 
--- =====================================================
 -- TABELA: TipoSanguineo
--- =====================================================
 
 CREATE TABLE TipoSanguineo (
     id_tipo_sanguineo INT IDENTITY(1,1) PRIMARY KEY,
@@ -38,9 +33,7 @@ CREATE TABLE TipoSanguineo (
 );
 GO
 
--- =====================================================
 -- TABELA: Hospital
--- =====================================================
 
 CREATE TABLE Hospital (
     id_hospital INT IDENTITY(1,1) PRIMARY KEY,
@@ -53,9 +46,7 @@ CREATE TABLE Hospital (
 );
 GO
 
--- =====================================================
 -- TABELA: Dador
--- =====================================================
 
 CREATE TABLE Dador (
     id_dador INT IDENTITY(1,1) PRIMARY KEY,
@@ -69,9 +60,8 @@ CREATE TABLE Dador (
 );
 GO
 
--- =====================================================
 -- TABELA: Campanha
--- =====================================================
+
 
 CREATE TABLE Campanha (
     id_campanha INT IDENTITY(1,1) PRIMARY KEY,
@@ -84,9 +74,7 @@ CREATE TABLE Campanha (
 );
 GO
 
--- =====================================================
 -- TABELA: PedidoDeSangue
--- =====================================================
 
 CREATE TABLE PedidoDeSangue (
     id_pedido INT IDENTITY(1,1) PRIMARY KEY,
@@ -99,9 +87,8 @@ CREATE TABLE PedidoDeSangue (
 );
 GO
 
--- =====================================================
 -- TABELA: Doacao
--- =====================================================
+
 
 CREATE TABLE Doacao (
     id_doacao INT IDENTITY(1,1) PRIMARY KEY,
@@ -112,9 +99,7 @@ CREATE TABLE Doacao (
 );
 GO
 
--- =====================================================
 -- TABELA: Notificacao
--- =====================================================
 
 CREATE TABLE Notificacao (
     id_notificacao INT IDENTITY(1,1) PRIMARY KEY,
