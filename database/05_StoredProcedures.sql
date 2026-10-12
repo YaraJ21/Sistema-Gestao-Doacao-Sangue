@@ -1,10 +1,8 @@
 /*
-=========================================================
  Sistema de Gestão de Doação de Sangue
  Script: 05_StoredProcedures.sql
  Responsável: Oslerson Abílio Muveca
  Tecnologia: Microsoft SQL Server
-=========================================================
 */
 
 CREATE OR ALTER PROCEDURE pa_RegistarUtilizador
@@ -58,7 +56,7 @@ BEGIN
 END;
 GO
 
-/*segunda procedure para registar dadoe*/
+/*segunda procedure para registar dador*/
 
 CREATE OR ALTER PROCEDURE pa_RegistarDador
     @id_utilizador INT,
