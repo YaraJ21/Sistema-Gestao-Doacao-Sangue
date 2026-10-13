@@ -380,3 +380,209 @@ BEGIN
     ORDER BY U.nome, U.apelido;
 END;
 GO
+
+/* nona procedure para actualizar dados do dador*/
+
+CREATE OR ALTER PROCEDURE pa_ActualizarDador
+    @id_dador INT,
+    @id_tipo_sanguineo INT,
+    @peso DECIMAL(5,2),
+    @cidade VARCHAR(100),
+    @bairro VARCHAR(100),
+    @ultima_doacao DATE = NULL,
+    @disponibilidade BIT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Dador
+        WHERE id_dador = @id_dador
+    )
+    BEGIN
+        THROW 50001, 'Dador nao encontrado.', 1;
+    END;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM TipoSanguineo
+        WHERE id_tipo_sanguineo = @id_tipo_sanguineo
+    )
+    BEGIN
+        THROW 50002, 'Tipo sanguineo nao encontrado.', 1;
+    END;
+
+    IF @peso IS NULL OR @peso <= 0
+    BEGIN
+        THROW 50003, 'O peso deve ser superior a zero.', 1;
+    END;
+
+    UPDATE Dador
+    SET
+        id_tipo_sanguineo = @id_tipo_sanguineo,
+        peso = @peso,
+        cidade = @cidade,
+        bairro = @bairro,
+        ultima_doacao = @ultima_doacao,
+        disponibilidade = @disponibilidade
+    WHERE id_dador = @id_dador;
+
+    SELECT 'Dador actualizado com sucesso.' AS mensagem;
+END;
+GO
+
+/* décima procedure para pesquisar dador por tipo sanguineo*/
+
+CREATE OR ALTER PROCEDURE pa_PesquisarDadorPorTipoSanguineo
+    @id_tipo_sanguineo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM TipoSanguineo
+        WHERE id_tipo_sanguineo = @id_tipo_sanguineo
+    )
+    BEGIN
+        THROW 50004, 'Tipo sanguineo nao encontrado.', 1;
+    END;
+
+    SELECT
+        D.id_dador,
+        U.nome,
+        U.apelido,
+        TS.grupo_sanguineo,
+        TS.fator_rh,
+        U.telefone,
+        D.cidade,
+        D.bairro,
+        D.disponibilidade
+    FROM Dador D
+    INNER JOIN Utilizador U
+        ON D.id_utilizador = U.id_utilizador
+    INNER JOIN TipoSanguineo TS
+        ON D.id_tipo_sanguineo = TS.id_tipo_sanguineo
+    WHERE D.id_tipo_sanguineo = @id_tipo_sanguineo
+    ORDER BY U.nome, U.apelido;
+END;
+GO
+
+/* décima primeira procedure para actualizar disponibilidade do dador*/
+
+CREATE OR ALTER PROCEDURE pa_ActualizarDisponibilidadeDador
+    @id_dador INT,
+    @disponibilidade BIT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Dador
+        WHERE id_dador = @id_dador
+    )
+    BEGIN
+        THROW 50005, 'Dador nao encontrado.', 1;
+    END;
+
+    UPDATE Dador
+    SET disponibilidade = @disponibilidade
+    WHERE id_dador = @id_dador;
+
+    SELECT 'Disponibilidade do dador actualizada com sucesso.' AS mensagem;
+END;
+GO
+
+/* décima segunda procedure para listar pedidos de sangue pendentes*/
+
+CREATE OR ALTER PROCEDURE pa_ListarPedidosPendentes
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        P.id_pedido,
+        H.nome_hospital,
+        TS.grupo_sanguineo,
+        TS.fator_rh,
+        P.quantidade_bolsas,
+        P.urgencia,
+        P.data_pedido,
+        P.estado
+    FROM PedidoDeSangue P
+    INNER JOIN Hospital H
+        ON P.id_hospital = H.id_hospital
+    INNER JOIN TipoSanguineo TS
+        ON P.id_tipo_sanguineo = TS.id_tipo_sanguineo
+    WHERE P.estado = 'Pendente'
+    ORDER BY
+        CASE
+            WHEN P.urgencia = 'Alta' THEN 1
+            WHEN P.urgencia = 'Media' THEN 2
+            WHEN P.urgencia = 'Baixa' THEN 3
+            ELSE 4
+        END,
+        P.data_pedido ASC;
+END;
+GO
+
+/* décima terceira procedure para listar doacoes por dador*/
+
+CREATE OR ALTER PROCEDURE pa_ListarDoacoesPorDador
+    @id_dador INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Dador
+        WHERE id_dador = @id_dador
+    )
+    BEGIN
+        THROW 50006, 'Dador nao encontrado.', 1;
+    END;
+
+    SELECT
+        D.id_doacao,
+        U.nome,
+        U.apelido,
+        H.nome_hospital,
+        D.data_doacao,
+        D.quantidade
+    FROM Doacao D
+    INNER JOIN Dador DA
+        ON D.id_dador = DA.id_dador
+    INNER JOIN Utilizador U
+        ON DA.id_utilizador = U.id_utilizador
+    INNER JOIN Hospital H
+        ON D.id_hospital = H.id_hospital
+    WHERE D.id_dador = @id_dador
+    ORDER BY D.data_doacao DESC;
+END;
+GO
+
+/* décima quarta procedure para listar campanhas de doacao de sangue*/
+
+CREATE OR ALTER PROCEDURE pa_ListarCampanhas
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        C.id_campanha,
+        H.nome_hospital,
+        C.titulo,
+        C.descricao,
+        C.local,
+        C.data,
+        C.hora
+    FROM Campanha C
+    INNER JOIN Hospital H
+        ON C.id_hospital = H.id_hospital
+    ORDER BY C.data ASC, C.hora ASC;
+END;
+GO
+
