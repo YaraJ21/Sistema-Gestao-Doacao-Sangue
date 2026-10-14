@@ -584,3 +584,512 @@ BEGIN
 END;
 GO
 
+/* décima quinta procedure para autenticar utilizador*/
+
+CREATE OR ALTER PROCEDURE pa_AutenticarUtilizador
+    @email VARCHAR(100),
+    @palavra_passe VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF EXISTS (
+        SELECT 1
+        FROM Utilizador
+        WHERE email = @email
+          AND palavra_passe = @palavra_passe
+    )
+    BEGIN
+        SELECT
+            id_utilizador,
+            nome,
+            apelido,
+            email,
+            tipo_utilizador,
+            'Autenticacao efectuada com sucesso.' AS mensagem
+        FROM Utilizador
+        WHERE email = @email
+          AND palavra_passe = @palavra_passe;
+    END
+    ELSE
+    BEGIN
+        SELECT
+            'E-mail ou palavra-passe incorrectos.' AS mensagem;
+    END;
+END;
+GO
+
+/* décima sexta procedure para consultar utilizador por id*/
+
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_ConsultarUtilizador
+    @id_utilizador INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Utilizador
+        WHERE id_utilizador = @id_utilizador
+    )
+    BEGIN
+        SELECT 'Utilizador não encontrado.' AS mensagem;
+        RETURN;
+    END;
+
+    SELECT
+        id_utilizador,
+        nome,
+        apelido,
+        sexo,
+        data_nascimento,
+        telefone,
+        email,
+        endereco,
+        tipo_utilizador
+    FROM Utilizador
+    WHERE id_utilizador = @id_utilizador;
+END;
+GO
+
+/* décima sétima procedure para actualizar dados do utilizador*/
+
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_ActualizarUtilizador
+    @id_utilizador INT,
+    @nome VARCHAR(50),
+    @apelido VARCHAR(50),
+    @sexo CHAR(1),
+    @data_nascimento DATE,
+    @telefone VARCHAR(15),
+    @email VARCHAR(100),
+    @palavra_passe VARCHAR(255),
+    @endereco VARCHAR(150),
+    @tipo_utilizador VARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Utilizador
+        WHERE id_utilizador = @id_utilizador
+    )
+    BEGIN
+        SELECT 'Utilizador não encontrado.' AS mensagem;
+        RETURN;
+    END;
+
+    IF EXISTS (
+        SELECT 1
+        FROM Utilizador
+        WHERE email = @email
+          AND id_utilizador <> @id_utilizador
+    )
+    BEGIN
+        SELECT 'Já existe outro utilizador com este e-mail.' AS mensagem;
+        RETURN;
+    END;
+
+    UPDATE Utilizador
+    SET
+        nome = @nome,
+        apelido = @apelido,
+        sexo = @sexo,
+        data_nascimento = @data_nascimento,
+        telefone = @telefone,
+        email = @email,
+        palavra_passe = @palavra_passe,
+        endereco = @endereco,
+        tipo_utilizador = @tipo_utilizador
+    WHERE id_utilizador = @id_utilizador;
+
+    SELECT 'Utilizador actualizado com sucesso.' AS mensagem;
+END;
+GO
+
+
+/* décima oitava procedure para consultar notificacoes do utilizador*/
+
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_ConsultarNotificacoes
+    @id_utilizador INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Utilizador
+        WHERE id_utilizador = @id_utilizador
+    )
+    BEGIN
+        SELECT 'Utilizador não encontrado.' AS mensagem;
+        RETURN;
+    END;
+
+    SELECT
+        id_notificacao,
+        mensagem,
+        data_envio,
+        lida
+    FROM Notificacao
+    WHERE id_utilizador = @id_utilizador
+    ORDER BY data_envio DESC;
+END;
+GO
+
+/* décima nona procedure para marcar notificacao como lida*/
+
+
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_MarcarNotificacaoComoLida
+    @id_notificacao INT,
+    @id_utilizador INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Notificacao
+        WHERE id_notificacao = @id_notificacao
+          AND id_utilizador = @id_utilizador
+    )
+    BEGIN
+        SELECT 'Notificação não encontrada para este utilizador.' AS mensagem;
+        RETURN;
+    END;
+
+    UPDATE Notificacao
+    SET lida = 1
+    WHERE id_notificacao = @id_notificacao
+      AND id_utilizador = @id_utilizador;
+
+    SELECT 'Notificação marcada como lida com sucesso.' AS mensagem;
+END;
+GO
+
+
+/* vigésima procedure para consultar pedidos de sangue por hospital e estado*/
+
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_ConsultarPedidosSangue
+    @id_hospital INT = NULL,
+    @estado VARCHAR(30) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        P.id_pedido,
+        H.nome_hospital,
+        TS.grupo_sanguineo,
+        TS.fator_rh,
+        P.quantidade_bolsas,
+        P.urgencia,
+        P.data_pedido,
+        P.estado
+    FROM PedidoDeSangue P
+    INNER JOIN Hospital H
+        ON P.id_hospital = H.id_hospital
+    INNER JOIN TipoSanguineo TS
+        ON P.id_tipo_sanguineo = TS.id_tipo_sanguineo
+    WHERE
+        (@id_hospital IS NULL OR P.id_hospital = @id_hospital)
+        AND (@estado IS NULL OR P.estado = @estado)
+    ORDER BY P.data_pedido DESC;
+END;
+GO
+
+
+/* vigésima primeira procedure para registar hospital*/
+
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_RegistarHospital
+    @nome_hospital VARCHAR(100),
+    @provincia VARCHAR(50),
+    @distrito VARCHAR(50),
+    @endereco VARCHAR(150),
+    @telefone VARCHAR(15),
+    @email VARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF EXISTS (
+        SELECT 1
+        FROM Hospital
+        WHERE email = @email
+    )
+    BEGIN
+        SELECT 'Já existe um hospital com este e-mail.' AS mensagem;
+        RETURN;
+    END;
+
+    INSERT INTO Hospital (
+        nome_hospital,
+        provincia,
+        distrito,
+        endereco,
+        telefone,
+        email
+    )
+    VALUES (
+        @nome_hospital,
+        @provincia,
+        @distrito,
+        @endereco,
+        @telefone,
+        @email
+    );
+
+    SELECT 'Hospital registado com sucesso.' AS mensagem;
+END;
+GO
+
+/* vigésima segunda procedure para consultar hospitais*/
+
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_ConsultarHospitais
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        id_hospital,
+        nome_hospital,
+        provincia,
+        distrito,
+        endereco,
+        telefone,
+        email
+    FROM Hospital
+    ORDER BY nome_hospital ASC;
+END;
+GO
+
+
+/* vigésima terceira procedure para actualizar hospital*/
+CREATE OR ALTER PROCEDURE pa_ActualizarHospital
+    @id_hospital INT,
+    @nome_hospital VARCHAR(100),
+    @provincia VARCHAR(50),
+    @distrito VARCHAR(50),
+    @endereco VARCHAR(150),
+    @telefone VARCHAR(15),
+    @email VARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Hospital
+        WHERE id_hospital = @id_hospital
+    )
+    BEGIN
+        THROW 50001, 'Hospital não encontrado.', 1;
+    END;
+
+    UPDATE Hospital
+    SET nome_hospital = @nome_hospital,
+        provincia = @provincia,
+        distrito = @distrito,
+        endereco = @endereco,
+        telefone = @telefone,
+        email = @email
+    WHERE id_hospital = @id_hospital;
+
+    SELECT 'Hospital actualizado com sucesso.' AS Mensagem;
+END;
+GO
+
+/* vigésima quarta procedure para remover hospital*/
+
+USE BD_DoacaoSangue;
+
+CREATE OR ALTER PROCEDURE pa_RemoverHospital
+    @id_hospital INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Hospital
+        WHERE id_hospital = @id_hospital
+    )
+    BEGIN
+        THROW 50001, 'Hospital não encontrado.', 1;
+    END;
+
+    DELETE FROM Hospital
+    WHERE id_hospital = @id_hospital;
+
+    SELECT 'Hospital removido com sucesso.' AS Mensagem;
+END;
+GO
+
+
+/* vigésima quinta procedure para registar tipo sanguineo*/
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_RegistarTipoSanguineo
+    @grupo_sanguineo VARCHAR(5),
+    @fator_rh VARCHAR(5)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF EXISTS (
+        SELECT 1
+        FROM TipoSanguineo
+        WHERE grupo_sanguineo = @grupo_sanguineo
+          AND fator_rh = @fator_rh
+    )
+    BEGIN
+        SELECT 'Este tipo sanguíneo já está registado.' AS mensagem;
+        RETURN;
+    END;
+
+    INSERT INTO TipoSanguineo (
+        grupo_sanguineo,
+        fator_rh
+    )
+    VALUES (
+        @grupo_sanguineo,
+        @fator_rh
+    );
+
+    SELECT 'Tipo sanguíneo registado com sucesso.' AS mensagem;
+END;
+GO
+
+/* vigésima sexta procedure para consultar tipos sanguineos*/
+
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_ConsultarTiposSanguineos
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        id_tipo_sanguineo,
+        grupo_sanguineo,
+        fator_rh
+    FROM TipoSanguineo
+    ORDER BY grupo_sanguineo ASC, fator_rh ASC;
+END;
+GO
+
+/* vigésima sétima procedure para Actualizar o tipo Sanguineo*/
+
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_ActualizarTipoSanguineo
+    @id_tipo_sanguineo INT,
+    @grupo_sanguineo VARCHAR(5),
+    @fator_rh VARCHAR(5)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM TipoSanguineo
+        WHERE id_tipo_sanguineo = @id_tipo_sanguineo
+    )
+    BEGIN
+        SELECT 'Tipo sanguíneo não encontrado.' AS mensagem;
+        RETURN;
+    END;
+
+    IF EXISTS (
+        SELECT 1
+        FROM TipoSanguineo
+        WHERE grupo_sanguineo = @grupo_sanguineo
+          AND fator_rh = @fator_rh
+          AND id_tipo_sanguineo <> @id_tipo_sanguineo
+    )
+    BEGIN
+        SELECT 'Este tipo sanguíneo já está registado.' AS mensagem;
+        RETURN;
+    END;
+
+    UPDATE TipoSanguineo
+    SET grupo_sanguineo = @grupo_sanguineo,
+        fator_rh = @fator_rh
+    WHERE id_tipo_sanguineo = @id_tipo_sanguineo;
+
+    SELECT 'Tipo sanguíneo actualizado com sucesso.' AS mensagem;
+END;
+GO
+
+/* vigésima oitava procedure para remover tipo sanguineo*/
+
+
+USE BD_DoacaoSangue;
+GO
+
+CREATE OR ALTER PROCEDURE pa_RemoverTipoSanguineo
+    @id_tipo_sanguineo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM TipoSanguineo
+        WHERE id_tipo_sanguineo = @id_tipo_sanguineo
+    )
+    BEGIN
+        SELECT 'Tipo sanguíneo não encontrado.' AS mensagem;
+        RETURN;
+    END;
+
+    IF EXISTS (
+        SELECT 1
+        FROM Dador
+        WHERE id_tipo_sanguineo = @id_tipo_sanguineo
+    )
+    BEGIN
+        SELECT 'Não é possível remover este tipo sanguíneo porque está associado a dadores.' AS mensagem;
+        RETURN;
+    END;
+
+    IF EXISTS (
+        SELECT 1
+        FROM PedidoDeSangue
+        WHERE id_tipo_sanguineo = @id_tipo_sanguineo
+    )
+    BEGIN
+        SELECT 'Não é possível remover este tipo sanguíneo porque está associado a pedidos de sangue.' AS mensagem;
+        RETURN;
+    END;
+
+    DELETE FROM TipoSanguineo
+    WHERE id_tipo_sanguineo = @id_tipo_sanguineo;
+
+    SELECT 'Tipo sanguíneo removido com sucesso.' AS mensagem;
+END;
+GO
